@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1e293b">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="UniWiFi Monitor">
+    <meta name="description" content="Real-time University WiFi Quality Monitoring and Smart Location Recommendations">
+    <title>University WiFi Quality Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <div class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-wifi"></i>
+            <span>UniWiFi Monitor</span>
+        </div>
+        <div class="nav-controls">
+            <button id="refreshBtn" class="btn btn-primary">
+                <i class="fas fa-sync-alt"></i> Refresh Data
+            </button>
+            <button id="locateBtn" class="btn btn-secondary">
+                <i class="fas fa-location-arrow"></i> Locate Me
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="hero-section fade-in-up">
+            <h1><i class="fas fa-map-marked-alt"></i> Campus WiFi Quality Dashboard</h1>
+            <p>Real-time monitoring and smart recommendations for campus WiFi access points</p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="stat-value-large" id="totalAps">0</div>
+                    <div class="stat-label-small">Access Points</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="stat-value-large" id="activeAps">0</div>
+                    <div class="stat-label-small">Active Now</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="stat-value-large" id="avgQuality">0</div>
+                    <div class="stat-label-small">Avg Quality</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card primary">
+                <div class="stat-icon">
+                    <i class="fas fa-wifi"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Total Access Points</h3>
+                    <div class="stat-value" id="totalAps">0</div>
+                </div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-icon">
+                    <i class="fas fa-signal"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Active APs</h3>
+                    <div class="stat-value" id="activeAps">0</div>
+                </div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Congested APs</h3>
+                    <div class="stat-value" id="congestedAps">0</div>
+                </div>
+            </div>
+            <div class="stat-card info">
+                <div class="stat-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Avg Quality</h3>
+                    <div class="stat-value" id="avgQuality">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="filters-section">
+            <div class="filter-group">
+                <label for="buildingFilter"><i class="fas fa-building"></i> Filter by Building:</label>
+                <select id="buildingFilter">
+                    <option value="all">All Buildings</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="statusFilter"><i class="fas fa-circle"></i> Filter by Status:</label>
+                <select id="statusFilter">
+                    <option value="all">All Statuses</option>
+                    <option value="Excellent">Excellent</option>
+                    <option value="Good">Good</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Poor">Poor</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="dashboard-layout">
+            <div class="dashboard-main">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-map"></i> Campus WiFi Map</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="map" style="height: 500px; border-radius: 8px;"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-list"></i> Access Points Status</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table id="apTable">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-tag"></i> Name</th>
+                                        <th><i class="fas fa-location-dot"></i> Location</th>
+                                        <th><i class="fas fa-circle"></i> Status</th>
+                                        <th><i class="fas fa-star"></i> Quality</th>
+                                        <th><i class="fas fa-bolt"></i> Speed</th>
+                                        <th><i class="fas fa-users"></i> Users</th>
+                                        <th><i class="fas fa-signal"></i> Signal</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="apTableBody">
+                                    <!-- AP data will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-sidebar">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-lightbulb"></i> Smart Recommendations</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="recommendationsContainer">
+                            <div class="recommendation-placeholder">
+                                <i class="fas fa-wifi recommendation-icon"></i>
+                                <p>Your personalized recommendations will appear here</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-chart-bar"></i> Quick Stats</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="quickStatsContainer">
+                            <div class="quick-stat">
+                                <div class="stat-label">Avg Download</div>
+                                <div class="stat-value-sm" id="avgDownload">0 Mbps</div>
+                            </div>
+                            <div class="quick-stat">
+                                <div class="stat-label">Avg Upload</div>
+                                <div class="stat-value-sm" id="avgUpload">0 Mbps</div>
+                            </div>
+                            <div class="quick-stat">
+                                <div class="stat-label">Avg Latency</div>
+                                <div class="stat-value-sm" id="avgLatency">0 ms</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-bell"></i> Network Alerts</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="alertsContainer">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                <span>All systems operational</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>University WiFi Quality Monitoring System &copy; 2026</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
