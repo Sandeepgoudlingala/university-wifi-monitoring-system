@@ -108,7 +108,7 @@ def init_db():
         if count == 0:
             print("Adding sample access points to database...")
             
-            # Sample access points with diverse locations
+            # Sample access points with diverse and accurate area/building names
             sample_ap_data = [
                 ("Library-WiFi", "Main Library", 2, "Study Area", 37.7749, -122.4194),
                 ("Student-Center-WiFi", "Student Center", 1, "Main Hall", 37.7750, -122.4195),
@@ -117,7 +117,15 @@ def init_db():
                 ("Science-Building-WiFi", "Science Building", 1, "Computer Lab", 37.7752, -122.4192),
                 ("Admin-Office-WiFi", "Administration", 1, "Main Office", 37.7747, -122.4197),
                 ("Cafe-WiFi", "Campus Cafe", 1, "Seating Area", 37.7753, -122.4191),
-                ("Fitness-Center-WiFi", "Fitness Center", 1, "Main Area", 37.7746, -122.4198)
+                ("Fitness-Center-WiFi", "Fitness Center", 1, "Main Area", 37.7746, -122.4198),
+                # Added more accurate area names for university setting
+                ("Lecture-Hall-1-WiFi", "Academic Building", 1, "Lecture Hall 1", 37.7745, -122.4199),
+                ("Lecture-Hall-2-WiFi", "Academic Building", 2, "Lecture Hall 2", 37.7744, -122.4200),
+                ("Dining-Hall-WiFi", "Dining Commons", 1, "Main Dining", 37.7743, -122.4201),
+                ("Residence-Hall-B-WiFi", "Residence Hall B", 3, "Study Lounge", 37.7742, -122.4202),
+                ("Business-School-WiFi", "Business School", 2, "Collaboration Space", 37.7741, -122.4203),
+                ("Arts-Center-WiFi", "Arts Center", 1, "Gallery Hall", 37.7740, -122.4204),
+                ("Medical-School-WiFi", "Medical School", 4, "Research Lab", 37.7739, -122.4205)
             ]
             
             for ap_data in sample_ap_data:
@@ -145,6 +153,7 @@ def init_db():
                 """, (ap_id, download_speed, upload_speed, latency, 
                       round(random.uniform(0, 1.5), 2), connected_users, signal_strength, 
                       round(random.uniform(25, 85), 1)))
+            # The enhanced sample data has already been added above
         
         conn.commit()
         conn.close()
@@ -703,7 +712,71 @@ try:
     # In production, ensure we have some initial data
     if os.environ.get('PRODUCTION', '').lower() == 'true':
         print("Initializing with sample data in production...")
+        # In production on Vercel, the filesystem is ephemeral, so we need to ensure data exists
         # Sample data will be added during init_db() if database is empty
+                
+        # Force adding sample data in production to ensure there's data to display
+        conn = sqlite3.connect(DATABASE)
+        cursor = conn.cursor()
+                
+        # Count existing access points
+        cursor.execute("SELECT COUNT(*) FROM access_points")
+        ap_count = cursor.fetchone()[0]
+                
+        if ap_count == 0:
+            print("No access points found in production, adding sample data...")
+                    
+            # Sample access points with diverse and accurate area/building names
+            sample_ap_data = [
+                ("Library-WiFi", "Main Library", 2, "Study Area", 37.7749, -122.4194),
+                ("Student-Center-WiFi", "Student Center", 1, "Main Hall", 37.7750, -122.4195),
+                ("Engineering-WiFi", "Engineering Building", 3, "Lab Wing", 37.7751, -122.4193),
+                ("Dormitory-A-WiFi", "Residence Hall A", 2, "Common Room", 37.7748, -122.4196),
+                ("Science-Building-WiFi", "Science Building", 1, "Computer Lab", 37.7752, -122.4192),
+                ("Admin-Office-WiFi", "Administration", 1, "Main Office", 37.7747, -122.4197),
+                ("Cafe-WiFi", "Campus Cafe", 1, "Seating Area", 37.7753, -122.4191),
+                ("Fitness-Center-WiFi", "Fitness Center", 1, "Main Area", 37.7746, -122.4198),
+                # Added more accurate area names for university setting
+                ("Lecture-Hall-1-WiFi", "Academic Building", 1, "Lecture Hall 1", 37.7745, -122.4199),
+                ("Lecture-Hall-2-WiFi", "Academic Building", 2, "Lecture Hall 2", 37.7744, -122.4200),
+                ("Dining-Hall-WiFi", "Dining Commons", 1, "Main Dining", 37.7743, -122.4201),
+                ("Residence-Hall-B-WiFi", "Residence Hall B", 3, "Study Lounge", 37.7742, -122.4202),
+                ("Business-School-WiFi", "Business School", 2, "Collaboration Space", 37.7741, -122.4203),
+                ("Arts-Center-WiFi", "Arts Center", 1, "Gallery Hall", 37.7740, -122.4204),
+                ("Medical-School-WiFi", "Medical School", 4, "Research Lab", 37.7739, -122.4205)
+            ]
+                    
+            for ap_data in sample_ap_data:
+                cursor.execute("""
+                    INSERT OR IGNORE INTO access_points (ap_name, building, floor, room_number, latitude, longitude)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, ap_data)
+                        
+                # Get the ID of the inserted access point
+                cursor.execute("SELECT id FROM access_points WHERE ap_name = ?", (ap_data[0],))
+                result = cursor.fetchone()
+                if result:
+                    ap_id = result[0]
+                            
+                    # Add sample performance metrics for each access point
+                    import random
+                    # Vary the metrics to make them more realistic
+                    download_speed = round(random.uniform(30, 120), 1)  # More realistic range
+                    upload_speed = round(random.uniform(10, 35), 1)
+                    latency = round(random.uniform(10, 60), 1)
+                    connected_users = random.randint(10, 80)  # More realistic user counts
+                    signal_strength = round(random.uniform(-85, -35), 1)
+                            
+                    cursor.execute("""
+                        INSERT INTO performance_metrics (ap_id, download_speed, upload_speed, latency, 
+                        packet_loss, connected_users, signal_strength, bandwidth_usage)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (ap_id, download_speed, upload_speed, latency, 
+                          round(random.uniform(0, 1.5), 2), connected_users, signal_strength, 
+                          round(random.uniform(25, 85), 1)))
+                    
+            conn.commit()
+        conn.close()
     else:
         print("Running in development mode")
         
