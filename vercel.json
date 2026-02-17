@@ -4,10 +4,25 @@
     {
       "src": "api.py",
       "use": "@vercel/python",
-      "config": { "runtime": "python3.9" }
+      "config": {
+        "runtime": "python3.9"
+      }
     }
   ],
   "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "api.py",
+      "methods": ["GET", "POST"]
+    },
+    {
+      "src": "/styles.css",
+      "dest": "api.py"
+    },
+    {
+      "src": "/script.js",
+      "dest": "api.py"
+    },
     {
       "src": "/(.*)",
       "dest": "api.py"

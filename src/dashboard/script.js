@@ -2,7 +2,13 @@
 
 class WiFiDashboard {
     constructor() {
-        this.apiBaseUrl = '/api';
+        // Determine API base URL based on environment
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            this.apiBaseUrl = '/api';
+        } else {
+            // Use the current origin for deployed environments
+            this.apiBaseUrl = '/api';
+        }
         this.map = null;
         this.markers = [];
         this.accessPointMarkers = []; // Separate markers for access points

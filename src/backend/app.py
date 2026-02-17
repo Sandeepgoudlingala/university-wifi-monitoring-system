@@ -6,8 +6,31 @@ from datetime import datetime
 import sqlite3
 import traceback
 from werkzeug.middleware.proxy_fix import ProxyFix
+import threading
 
-app = Flask(__name__, static_folder='../../src/dashboard', static_url_path='/static')
+# Import data collection module
+try:
+    from ..data_collection.collector import WiFiDataCollector
+except ImportError:
+    # If the collector module doesn't exist, create a mock version
+    class WiFiDataCollector:
+        def __init__(self, api_base_url=""):
+            pass
+        def start_collection(self, interval=60):
+            print("Mock collector: Would start collecting data")
+        def stop_collection(self):
+            print("Mock collector: Would stop collection")
+
+# Determine the correct path based on environment
+current_dir = os.path.dirname(os.path.abspath(__file__))
+dashboard_path = os.path.join(current_dir, '../dashboard')
+
+if os.environ.get('PRODUCTION', '').lower() == 'true':
+    # In production, dashboard files are in the same directory structure
+    app = Flask(__name__, static_folder=dashboard_path, static_url_path='')
+else:
+    # In development, use local path
+    app = Flask(__name__, static_folder=dashboard_path, static_url_path='')
 CORS(app)
 
 # Proxy fix for production deployment
@@ -22,10 +45,10 @@ if os.environ.get('PRODUCTION', '').lower() == 'true':
     DATABASE = os.path.join(tempfile.gettempdir(), 'wifi_data.db')
 else:
     # In development, use local file
-    DATABASE = 'wifi_data.db'
+    DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../wifi_data.db')
 
 def init_db():
-    """Initialize the database with required tables"""
+    """Initialize the database with required tables and sample data"""
     try:
         conn = sqlite3.connect(DATABASE)
         cursor = conn.cursor()
@@ -73,9 +96,56 @@ def init_db():
             )
         ''')
         
+        # Check if there are any access points already
+        cursor.execute("SELECT COUNT(*) FROM access_points")
+        count = cursor.fetchone()[0]
+        
+        # If no access points exist, add sample data
+        if count == 0:
+            print("Adding sample access points to database...")
+            
+            # Sample access points with diverse locations
+            sample_ap_data = [
+                ("Library-WiFi", "Main Library", 2, "Study Area", 37.7749, -122.4194),
+                ("Student-Center-WiFi", "Student Center", 1, "Main Hall", 37.7750, -122.4195),
+                ("Engineering-WiFi", "Engineering Building", 3, "Lab Wing", 37.7751, -122.4193),
+                ("Dormitory-A-WiFi", "Residence Hall A", 2, "Common Room", 37.7748, -122.4196),
+                ("Science-Building-WiFi", "Science Building", 1, "Computer Lab", 37.7752, -122.4192),
+                ("Admin-Office-WiFi", "Administration", 1, "Main Office", 37.7747, -122.4197),
+                ("Cafe-WiFi", "Campus Cafe", 1, "Seating Area", 37.7753, -122.4191),
+                ("Fitness-Center-WiFi", "Fitness Center", 1, "Main Area", 37.7746, -122.4198)
+            ]
+            
+            for ap_data in sample_ap_data:
+                cursor.execute("""
+                    INSERT INTO access_points (ap_name, building, floor, room_number, latitude, longitude)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, ap_data)
+                
+                # Get the ID of the inserted access point
+                ap_id = cursor.lastrowid
+                
+                # Add sample performance metrics for each access point
+                import random
+                # Vary the metrics to make them more realistic
+                download_speed = round(random.uniform(30, 120), 1)  # More realistic range
+                upload_speed = round(random.uniform(10, 35), 1)
+                latency = round(random.uniform(10, 60), 1)
+                connected_users = random.randint(10, 80)  # More realistic user counts
+                signal_strength = round(random.uniform(-85, -35), 1)
+                
+                cursor.execute("""
+                    INSERT INTO performance_metrics (ap_id, download_speed, upload_speed, latency, 
+                    packet_loss, connected_users, signal_strength, bandwidth_usage)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (ap_id, download_speed, upload_speed, latency, 
+                      round(random.uniform(0, 1.5), 2), connected_users, signal_strength, 
+                      round(random.uniform(25, 85), 1)))
+        
         conn.commit()
         conn.close()
         print(f"Database initialized successfully at: {DATABASE}")
+        print(f"Total access points in database: {count if count > 0 else len(sample_ap_data)}")
     except Exception as e:
         print(f"Error initializing database: {str(e)}")
         traceback.print_exc()
@@ -89,20 +159,93 @@ def get_db_connection():
 
 @app.route('/')
 def serve_dashboard():
-    return send_from_directory('../../src/dashboard', 'index.html')
+    # Handle serving the dashboard in both dev and prod environments
+    import os
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    dashboard_path = os.path.join(current_dir, '../dashboard')
+    
+    try:
+        return send_from_directory(dashboard_path, 'index.html')
+    except FileNotFoundError:
+        # Fallback for different environments
+        return send_from_directory('../dashboard', 'index.html')
 
 # Serve static files (CSS, JS, images) from dashboard directory
 @app.route('/styles.css')
 def serve_css():
-    return send_from_directory('../../src/dashboard', 'styles.css')
+    import os
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    dashboard_path = os.path.join(current_dir, '../dashboard')
+    
+    try:
+        return send_from_directory(dashboard_path, 'styles.css')
+    except FileNotFoundError:
+        return send_from_directory('../dashboard', 'styles.css')
 
 @app.route('/script.js')
 def serve_js():
-    return send_from_directory('../../src/dashboard', 'script.js')
+    import os
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    dashboard_path = os.path.join(current_dir, '../dashboard')
+    
+    try:
+        return send_from_directory(dashboard_path, 'script.js')
+    except FileNotFoundError:
+        return send_from_directory('../dashboard', 'script.js')
 
 @app.route('/api/')
 def api_home():
     return jsonify({"message": "University WiFi Monitoring System API"})
+
+@app.route('/api/test')
+def api_test():
+    """Test endpoint to verify API is working"""
+    return jsonify({
+        "status": "success", 
+        "message": "API is working properly",
+        "timestamp": datetime.now().isoformat()
+    })
+
+@app.route('/api/sample-data')
+def api_sample_data():
+    """Generate sample access point data for testing"""
+    sample_aps = [
+        {
+            "id": 1,
+            "ap_name": "Library-WiFi",
+            "building": "Main Library",
+            "floor": 2,
+            "room_number": "201",
+            "latitude": 40.7128,
+            "longitude": -74.0060,
+            "download_speed": 85.5,
+            "upload_speed": 20.3,
+            "latency": 12.4,
+            "connected_users": 42,
+            "signal_strength": -45,
+            "timestamp": datetime.now().isoformat(),
+            "quality_score": 88.5,
+            "status": "Excellent"
+        },
+        {
+            "id": 2,
+            "ap_name": "Student-Center-WiFi",
+            "building": "Student Center",
+            "floor": 1,
+            "room_number": "Main Hall",
+            "latitude": 40.7135,
+            "longitude": -74.0072,
+            "download_speed": 65.2,
+            "upload_speed": 15.8,
+            "latency": 18.7,
+            "connected_users": 87,
+            "signal_strength": -52,
+            "timestamp": datetime.now().isoformat(),
+            "quality_score": 72.3,
+            "status": "Good"
+        }
+    ]
+    return jsonify(sample_aps)
 
 @app.route('/api/access-points', methods=['GET'])
 def get_access_points():
@@ -327,12 +470,82 @@ def get_status_from_score(score):
     else:
         return "Poor"
 
+# Initialize data collector
+collector = None
+
+@app.route('/api/start-collection', methods=['POST'])
+def start_data_collection():
+    """Start real-time data collection"""
+    global collector
+    try:
+        if collector is None or not collector.is_collecting:
+            # Use the current request URL as the API base
+            api_base_url = request.url_root.rstrip('/')
+            # Construct the correct API base URL
+            # Remove the specific endpoint path to get the base URL
+            if '/api/start-collection' in api_base_url:
+                api_base_url = api_base_url.replace('/api/start-collection', '')
+            elif '/api/' in api_base_url:
+                api_base_url = api_base_url.split('/api')[0]
+            elif api_base_url.endswith('/api'):
+                api_base_url = api_base_url[:-4]
+            
+            collector = WiFiDataCollector(api_base_url=api_base_url)
+            collection_interval = request.json.get('interval', 60)  # Default to 60 seconds
+            collector.start_collection(interval=collection_interval)
+            return jsonify({
+                'message': 'Data collection started successfully',
+                'interval': collection_interval
+            }), 200
+        else:
+            return jsonify({'message': 'Data collection is already running'}), 400
+    except Exception as e:
+        print(f"Error starting data collection: {str(e)}")
+        return jsonify({'error': 'Failed to start data collection'}), 500
+
+@app.route('/api/stop-collection', methods=['POST'])
+def stop_data_collection():
+    """Stop real-time data collection"""
+    global collector
+    try:
+        if collector and collector.is_collecting:
+            collector.stop_collection()
+            collector = None
+            return jsonify({'message': 'Data collection stopped successfully'}), 200
+        else:
+            return jsonify({'message': 'Data collection is not running'}), 400
+    except Exception as e:
+        print(f"Error stopping data collection: {str(e)}")
+        return jsonify({'error': 'Failed to stop data collection'}), 500
+
+@app.route('/api/collection-status', methods=['GET'])
+def get_collection_status():
+    """Get current data collection status"""
+    global collector
+    try:
+        is_running = collector is not None and collector.is_collecting
+        return jsonify({
+            'is_collecting': is_running,
+            'message': 'Running' if is_running else 'Not running'
+        })
+    except Exception as e:
+        print(f"Error getting collection status: {str(e)}")
+        return jsonify({'error': 'Failed to get collection status'}), 500
+
 # Initialize database when the module is loaded
 try:
     init_db()
     print("Database initialized for University WiFi Monitoring System")
+    
+    # In production, ensure we have some initial data
+    if os.environ.get('PRODUCTION', '').lower() == 'true':
+        print("Initializing with sample data in production...")
+        # Sample data will be added during init_db() if database is empty
+    else:
+        print("Running in development mode")
+        
 except Exception as e:
-    print(f"Failed to initialize database: {str(e)}")
+    print(f"Failed to initialize system: {str(e)}")
     traceback.print_exc()
 
 if __name__ == '__main__':
