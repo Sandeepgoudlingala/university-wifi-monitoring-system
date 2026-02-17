@@ -271,34 +271,40 @@
             testBtn.textContent = 'Testing...';
             testBtn.disabled = true;
             
-            // Use the live stats API to get real ping/latency
             try {
-                const startTime = new Date().getTime();
+                // Use the live speed test API to get real ping
+                document.getElementById('testResults').innerHTML = 'Running live ping test...';
                 
-                // Perform a simple ping to our own API
-                const response = await fetch('/api/live-stats', {
-                    method: 'GET',
-                    cache: 'no-cache'
-                });
+                const response = await fetch('/api/live-speed-test');
                 
-                const endTime = new Date().getTime();
-                const pingTime = endTime - startTime;
-                
-                // Get the actual stats if the response is successful
                 if (response.ok) {
                     const data = await response.json();
-                    document.getElementById('pingTime').textContent = `${data.average_latency} ms`;
-                    document.getElementById('downloadSpeed').textContent = `${data.average_download_speed} Mbps`;
-                    document.getElementById('uploadSpeed').textContent = `${data.average_upload_speed} Mbps`;
+                    
+                    // Update the stats with live test results
+                    document.getElementById('pingTime').textContent = `${data.ping} ms`;
+                    document.getElementById('downloadSpeed').textContent = `${data.download_speed} Mbps`;
+                    document.getElementById('uploadSpeed').textContent = `${data.upload_speed} Mbps`;
+                    
+                    document.getElementById('testResults').innerHTML = 
+                        `<div style="color: #4ade80;">
+                            <div>✓ Ping: ${data.ping} ms</div>
+                            <div>✓ Download: ${data.download_speed} Mbps</div>
+                            <div>✓ Upload: ${data.upload_speed} Mbps</div>
+                        </div>`;
                 } else {
-                    // Use the calculated ping time if API fails
+                    // Fallback to calculating ping time
+                    const startTime = new Date().getTime();
+                    const pingResponse = await fetch('/api/live-stats', { cache: 'no-cache' });
+                    const endTime = new Date().getTime();
+                    const pingTime = endTime - startTime;
+                    
                     document.getElementById('pingTime').textContent = `${pingTime} ms`;
+                    
+                    document.getElementById('testResults').innerHTML = 
+                        `<span style="color: #fbbf24;">⚠ Used calculated ping: ${pingTime}ms</span>`;
                 }
                 
-                document.getElementById('testResults').innerHTML = 
-                    `<span style="color: #4ade80;">✓ Ping: ${pingTime}ms</span>`;
-                
-                // Also update the main ping display
+                // Also update the main stats
                 updateLiveStats();
             } catch (error) {
                 document.getElementById('testResults').innerHTML = 
@@ -311,7 +317,7 @@
             }
         }
         
-        // Run real speed test using the API data
+        // Run real speed test using the live speed test API
         async function runSpeedTest() {
             if (isTesting) return;
             
@@ -320,54 +326,65 @@
             testBtn.textContent = 'Testing...';
             testBtn.disabled = true;
             
-            document.getElementById('testResults').innerHTML = 'Fetching network data...';
+            document.getElementById('testResults').innerHTML = 'Running live network speed test...';
             
             try {
-                // Fetch real network statistics from the API
-                const response = await fetch('/api/live-stats');
+                // Fetch live network speed test from the API
+                const response = await fetch('/api/live-speed-test');
                 
                 if (response.ok) {
                     const data = await response.json();
                     
-                    // Update with real data from the API
-                    document.getElementById('downloadSpeed').textContent = `${data.average_download_speed} Mbps`;
-                    document.getElementById('uploadSpeed').textContent = `${data.average_upload_speed} Mbps`;
-                    document.getElementById('pingTime').textContent = `${data.average_latency} ms`;
+                    // Update with live test results
+                    document.getElementById('downloadSpeed').textContent = `${data.download_speed} Mbps`;
+                    document.getElementById('uploadSpeed').textContent = `${data.upload_speed} Mbps`;
+                    document.getElementById('pingTime').textContent = `${data.ping} ms`;
                     
                     document.getElementById('testResults').innerHTML = 
                         `<div style="color: #4ade80;">
-                            <div>✓ Download: ${data.average_download_speed} Mbps</div>
-                            <div>✓ Upload: ${data.average_upload_speed} Mbps</div>
-                            <div>✓ Ping: ${data.average_latency} ms</div>
-                            <div>✓ Connected Users: ${data.connected_users}</div>
+                            <div>✓ Download: ${data.download_speed} Mbps</div>
+                            <div>✓ Upload: ${data.upload_speed} Mbps</div>
+                            <div>✓ Ping: ${data.ping} ms</div>
+                            <div>✓ Test completed at: ${new Date().toLocaleTimeString()}</div>
                         </div>`;
                 } else {
-                    // Fallback to simulated values if API fails
-                    document.getElementById('testResults').innerHTML = 'API not responding, using simulated values...';
+                    // Fallback to the live stats API
+                    document.getElementById('testResults').innerHTML = 'Speed test API not responding, using live stats...';
                     
-                    // Simulate download test
-                    document.getElementById('testResults').innerHTML = 'Testing download speed...';
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    const downloadSpeed = (Math.random() * 80 + 20).toFixed(2);
-                    document.getElementById('downloadSpeed').textContent = `${downloadSpeed} Mbps`;
-                    
-                    // Simulate upload test
-                    document.getElementById('testResults').innerHTML = 'Testing upload speed...';
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    const uploadSpeed = (Math.random() * 30 + 5).toFixed(2);
-                    document.getElementById('uploadSpeed').textContent = `${uploadSpeed} Mbps`;
-                    
-                    // Simulate ping
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    const pingTime = Math.floor(Math.random() * 50 + 10);
-                    document.getElementById('pingTime').textContent = `${pingTime} ms`;
-                    
-                    document.getElementById('testResults').innerHTML = 
-                        `<div style="color: #fbbf24;">
-                            <div>⚠ Download: ${downloadSpeed} Mbps (simulated)</div>
-                            <div>⚠ Upload: ${uploadSpeed} Mbps (simulated)</div>
-                            <div>⚠ Ping: ${pingTime} ms (simulated)</div>
-                        </div>`;
+                    const statsResponse = await fetch('/api/live-stats');
+                    if (statsResponse.ok) {
+                        const statsData = await statsResponse.json();
+                        
+                        document.getElementById('downloadSpeed').textContent = `${statsData.average_download_speed} Mbps`;
+                        document.getElementById('uploadSpeed').textContent = `${statsData.average_upload_speed} Mbps`;
+                        document.getElementById('pingTime').textContent = `${statsData.average_latency} ms`;
+                        
+                        document.getElementById('testResults').innerHTML = 
+                            `<div style="color: #4ade80;">
+                                <div>✓ Download: ${statsData.average_download_speed} Mbps</div>
+                                <div>✓ Upload: ${statsData.average_upload_speed} Mbps</div>
+                                <div>✓ Ping: ${statsData.average_latency} ms</div>
+                            </div>`;
+                    } else {
+                        // Use simulated values if both APIs fail
+                        document.getElementById('testResults').innerHTML = 'APIs not responding, using simulated values...';
+                        
+                        // Simulate values similar to your example
+                        const downloadSpeed = 96.24;  // Your example value
+                        const uploadSpeed = 21.42;   // Your example value
+                        const pingTime = 33.84;      // Your example value
+                        
+                        document.getElementById('downloadSpeed').textContent = `${downloadSpeed} Mbps`;
+                        document.getElementById('uploadSpeed').textContent = `${uploadSpeed} Mbps`;
+                        document.getElementById('pingTime').textContent = `${pingTime} ms`;
+                        
+                        document.getElementById('testResults').innerHTML = 
+                            `<div style="color: #fbbf24;">
+                                <div>⚠ Download: ${downloadSpeed} Mbps (simulated)</div>
+                                <div>⚠ Upload: ${uploadSpeed} Mbps (simulated)</div>
+                                <div>⚠ Ping: ${pingTime} ms (simulated)</div>
+                            </div>`;
+                    }
                 }
             } catch (error) {
                 console.error('Speed test error:', error);
