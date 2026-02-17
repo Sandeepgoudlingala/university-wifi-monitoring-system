@@ -125,48 +125,48 @@ def init_db():
         if count == 0:
             print("Adding sample access points to database...")
             
-            # Sample access points with accurate university area names
+            # Sample access points with accurate university area names and realistic coordinates
             sample_ap_data = [
-                # Mens Hostels (MH1 to MH7)
-                ("MH1-WiFi", "Mens Hostel 1", 1, "Common Area", 37.7749, -122.4194),
-                ("MH2-WiFi", "Mens Hostel 2", 1, "Common Area", 37.7750, -122.4195),
-                ("MH3-WiFi", "Mens Hostel 3", 1, "Common Area", 37.7751, -122.4193),
-                ("MH4-WiFi", "Mens Hostel 4", 1, "Common Area", 37.7748, -122.4196),
-                ("MH5-WiFi", "Mens Hostel 5", 1, "Common Area", 37.7752, -122.4192),
-                ("MH6-WiFi", "Mens Hostel 6", 1, "Common Area", 37.7747, -122.4197),
-                ("MH7-WiFi", "Mens Hostel 7", 1, "Common Area", 37.7753, -122.4191),
+                # Mens Hostels (arranged in the northern part of campus)
+                ("MH1-WiFi", "Mens Hostel 1", 1, "Common Area", 17.4480, 78.3850),
+                ("MH2-WiFi", "Mens Hostel 2", 1, "Common Area", 17.4475, 78.3850),
+                ("MH3-WiFi", "Mens Hostel 3", 1, "Common Area", 17.4470, 78.3850),
+                ("MH4-WiFi", "Mens Hostel 4", 1, "Common Area", 17.4465, 78.3850),
+                ("MH5-WiFi", "Mens Hostel 5", 1, "Common Area", 17.4460, 78.3850),
+                ("MH6-WiFi", "Mens Hostel 6", 1, "Common Area", 17.4455, 78.3850),
+                ("MH7-WiFi", "Mens Hostel 7", 1, "Common Area", 17.4450, 78.3850),
                 
-                # Ladies Hostels (LH1 to LH4)
-                ("LH1-WiFi", "Ladies Hostel 1", 1, "Common Area", 37.7746, -122.4198),
-                ("LH2-WiFi", "Ladies Hostel 2", 1, "Common Area", 37.7745, -122.4199),
-                ("LH3-WiFi", "Ladies Hostel 3", 1, "Common Area", 37.7744, -122.4200),
-                ("LH4-WiFi", "Ladies Hostel 4", 1, "Common Area", 37.7743, -122.4201),
+                # Ladies Hostels (arranged in the eastern part of campus)
+                ("LH1-WiFi", "Ladies Hostel 1", 1, "Common Area", 17.4400, 78.3980),
+                ("LH2-WiFi", "Ladies Hostel 2", 1, "Common Area", 17.4400, 78.3970),
+                ("LH3-WiFi", "Ladies Hostel 3", 1, "Common Area", 17.4400, 78.3960),
+                ("LH4-WiFi", "Ladies Hostel 4", 1, "Common Area", 17.4400, 78.3950),
                 
-                # Academic blocks (Central Block 1 to 10)
-                ("CB1-WiFi", "Central Block 1", 1, "Ground Floor", 37.7742, -122.4202),
-                ("CB2-WiFi", "Central Block 2", 2, "Second Floor", 37.7741, -122.4203),
-                ("CB3-WiFi", "Central Block 3", 3, "Third Floor", 37.7740, -122.4204),
-                ("CB4-WiFi", "Central Block 4", 4, "Fourth Floor", 37.7739, -122.4205),
-                ("CB5-WiFi", "Central Block 5", 5, "Fifth Floor", 37.7738, -122.4206),
-                ("CB6-WiFi", "Central Block 6", 6, "Sixth Floor", 37.7737, -122.4207),
-                ("CB7-WiFi", "Central Block 7", 7, "Seventh Floor", 37.7736, -122.4208),
-                ("CB8-WiFi", "Central Block 8", 8, "Eighth Floor", 37.7735, -122.4209),
-                ("CB9-WiFi", "Central Block 9", 9, "Ninth Floor", 37.7734, -122.4210),
-                ("CB10-WiFi", "Central Block 10", 10, "Tenth Floor", 37.7733, -122.4211),
+                # Central Blocks (Academic blocks arranged in the center of campus)
+                ("CB1-WiFi", "Central Block 1", 1, "Ground Floor", 17.4410, 78.3910),
+                ("CB2-WiFi", "Central Block 2", 2, "Second Floor", 17.4415, 78.3910),
+                ("CB3-WiFi", "Central Block 3", 3, "Third Floor", 17.4420, 78.3910),
+                ("CB4-WiFi", "Central Block 4", 4, "Fourth Floor", 17.4425, 78.3910),
+                ("CB5-WiFi", "Central Block 5", 5, "Fifth Floor", 17.4430, 78.3910),
+                ("CB6-WiFi", "Central Block 6", 6, "Sixth Floor", 17.4410, 78.3920),
+                ("CB7-WiFi", "Central Block 7", 7, "Seventh Floor", 17.4415, 78.3920),
+                ("CB8-WiFi", "Central Block 8", 8, "Eighth Floor", 17.4420, 78.3920),
+                ("CB9-WiFi", "Central Block 9", 9, "Ninth Floor", 17.4425, 78.3920),
+                ("CB10-WiFi", "Central Block 10", 10, "Tenth Floor", 17.4430, 78.3920),
                 
-                # Admission Block (AB1 and AB2)
-                ("AB1-WiFi", "Admission Block 1", 1, "Main Office", 37.7732, -122.4212),
-                ("AB2-WiFi", "Admission Block 2", 1, "Main Office", 37.7731, -122.4213),
+                # Admission Blocks (arranged near the entrance)
+                ("AB1-WiFi", "Admission Block 1", 1, "Main Office", 17.4435, 78.3900),
+                ("AB2-WiFi", "Admission Block 2", 1, "Main Office", 17.4435, 78.3905),
                 
-                # Food Street
-                ("FS-North-WiFi", "Food Street North", 1, "Restaurant Area", 37.7730, -122.4214),
-                ("FS-South-WiFi", "Food Street South", 1, "Cafe Area", 37.7729, -122.4215),
-                ("FS-Center-WiFi", "Food Street Center", 1, "Main Square", 37.7728, -122.4216),
+                # Food Street (arranged near the center)
+                ("FS-North-WiFi", "Food Street North", 1, "Restaurant Area", 17.4420, 78.3880),
+                ("FS-South-WiFi", "Food Street South", 1, "Cafe Area", 17.4390, 78.3880),
+                ("FS-Center-WiFi", "Food Street Center", 1, "Main Square", 17.4405, 78.3880),
                 
-                # Rock Plaza
-                ("RP-Main-WiFi", "Rock Plaza Main", 1, "Main Plaza", 37.7727, -122.4217),
-                ("RP-East-WiFi", "Rock Plaza East", 1, "Event Space", 37.7726, -122.4218),
-                ("RP-West-WiFi", "Rock Plaza West", 1, "Relaxation Area", 37.7725, -122.4219)
+                # Rock Plaza (arranged in the western part of campus)
+                ("RP-Main-WiFi", "Rock Plaza Main", 1, "Main Plaza", 17.4380, 78.3900),
+                ("RP-East-WiFi", "Rock Plaza East", 1, "Event Space", 17.4380, 78.3910),
+                ("RP-West-WiFi", "Rock Plaza West", 1, "Relaxation Area", 17.4380, 78.3890)
             ]
             
             for ap_data in sample_ap_data:
@@ -791,48 +791,48 @@ try:
         if ap_count == 0:
             print("No access points found in production, adding sample data...")
                         
-            # Sample access points with accurate university area names
+            # Sample access points with accurate university area names and realistic coordinates
             sample_ap_data = [
-                # Mens Hostels (MH1 to MH7)
-                ("MH1-WiFi", "Mens Hostel 1", 1, "Common Area", 37.7749, -122.4194),
-                ("MH2-WiFi", "Mens Hostel 2", 1, "Common Area", 37.7750, -122.4195),
-                ("MH3-WiFi", "Mens Hostel 3", 1, "Common Area", 37.7751, -122.4193),
-                ("MH4-WiFi", "Mens Hostel 4", 1, "Common Area", 37.7748, -122.4196),
-                ("MH5-WiFi", "Mens Hostel 5", 1, "Common Area", 37.7752, -122.4192),
-                ("MH6-WiFi", "Mens Hostel 6", 1, "Common Area", 37.7747, -122.4197),
-                ("MH7-WiFi", "Mens Hostel 7", 1, "Common Area", 37.7753, -122.4191),
+                # Mens Hostels (arranged in the northern part of campus)
+                ("MH1-WiFi", "Mens Hostel 1", 1, "Common Area", 17.4480, 78.3850),
+                ("MH2-WiFi", "Mens Hostel 2", 1, "Common Area", 17.4475, 78.3850),
+                ("MH3-WiFi", "Mens Hostel 3", 1, "Common Area", 17.4470, 78.3850),
+                ("MH4-WiFi", "Mens Hostel 4", 1, "Common Area", 17.4465, 78.3850),
+                ("MH5-WiFi", "Mens Hostel 5", 1, "Common Area", 17.4460, 78.3850),
+                ("MH6-WiFi", "Mens Hostel 6", 1, "Common Area", 17.4455, 78.3850),
+                ("MH7-WiFi", "Mens Hostel 7", 1, "Common Area", 17.4450, 78.3850),
                             
-                # Ladies Hostels (LH1 to LH4)
-                ("LH1-WiFi", "Ladies Hostel 1", 1, "Common Area", 37.7746, -122.4198),
-                ("LH2-WiFi", "Ladies Hostel 2", 1, "Common Area", 37.7745, -122.4199),
-                ("LH3-WiFi", "Ladies Hostel 3", 1, "Common Area", 37.7744, -122.4200),
-                ("LH4-WiFi", "Ladies Hostel 4", 1, "Common Area", 37.7743, -122.4201),
+                # Ladies Hostels (arranged in the eastern part of campus)
+                ("LH1-WiFi", "Ladies Hostel 1", 1, "Common Area", 17.4400, 78.3980),
+                ("LH2-WiFi", "Ladies Hostel 2", 1, "Common Area", 17.4400, 78.3970),
+                ("LH3-WiFi", "Ladies Hostel 3", 1, "Common Area", 17.4400, 78.3960),
+                ("LH4-WiFi", "Ladies Hostel 4", 1, "Common Area", 17.4400, 78.3950),
                             
-                # Academic blocks (Central Block 1 to 10)
-                ("CB1-WiFi", "Central Block 1", 1, "Ground Floor", 37.7742, -122.4202),
-                ("CB2-WiFi", "Central Block 2", 2, "Second Floor", 37.7741, -122.4203),
-                ("CB3-WiFi", "Central Block 3", 3, "Third Floor", 37.7740, -122.4204),
-                ("CB4-WiFi", "Central Block 4", 4, "Fourth Floor", 37.7739, -122.4205),
-                ("CB5-WiFi", "Central Block 5", 5, "Fifth Floor", 37.7738, -122.4206),
-                ("CB6-WiFi", "Central Block 6", 6, "Sixth Floor", 37.7737, -122.4207),
-                ("CB7-WiFi", "Central Block 7", 7, "Seventh Floor", 37.7736, -122.4208),
-                ("CB8-WiFi", "Central Block 8", 8, "Eighth Floor", 37.7735, -122.4209),
-                ("CB9-WiFi", "Central Block 9", 9, "Ninth Floor", 37.7734, -122.4210),
-                ("CB10-WiFi", "Central Block 10", 10, "Tenth Floor", 37.7733, -122.4211),
+                # Central Blocks (Academic blocks arranged in the center of campus)
+                ("CB1-WiFi", "Central Block 1", 1, "Ground Floor", 17.4410, 78.3910),
+                ("CB2-WiFi", "Central Block 2", 2, "Second Floor", 17.4415, 78.3910),
+                ("CB3-WiFi", "Central Block 3", 3, "Third Floor", 17.4420, 78.3910),
+                ("CB4-WiFi", "Central Block 4", 4, "Fourth Floor", 17.4425, 78.3910),
+                ("CB5-WiFi", "Central Block 5", 5, "Fifth Floor", 17.4430, 78.3910),
+                ("CB6-WiFi", "Central Block 6", 6, "Sixth Floor", 17.4410, 78.3920),
+                ("CB7-WiFi", "Central Block 7", 7, "Seventh Floor", 17.4415, 78.3920),
+                ("CB8-WiFi", "Central Block 8", 8, "Eighth Floor", 17.4420, 78.3920),
+                ("CB9-WiFi", "Central Block 9", 9, "Ninth Floor", 17.4425, 78.3920),
+                ("CB10-WiFi", "Central Block 10", 10, "Tenth Floor", 17.4430, 78.3920),
                             
-                # Admission Block (AB1 and AB2)
-                ("AB1-WiFi", "Admission Block 1", 1, "Main Office", 37.7732, -122.4212),
-                ("AB2-WiFi", "Admission Block 2", 1, "Main Office", 37.7731, -122.4213),
+                # Admission Blocks (arranged near the entrance)
+                ("AB1-WiFi", "Admission Block 1", 1, "Main Office", 17.4435, 78.3900),
+                ("AB2-WiFi", "Admission Block 2", 1, "Main Office", 17.4435, 78.3905),
                             
-                # Food Street
-                ("FS-North-WiFi", "Food Street North", 1, "Restaurant Area", 37.7730, -122.4214),
-                ("FS-South-WiFi", "Food Street South", 1, "Cafe Area", 37.7729, -122.4215),
-                ("FS-Center-WiFi", "Food Street Center", 1, "Main Square", 37.7728, -122.4216),
+                # Food Street (arranged near the center)
+                ("FS-North-WiFi", "Food Street North", 1, "Restaurant Area", 17.4420, 78.3880),
+                ("FS-South-WiFi", "Food Street South", 1, "Cafe Area", 17.4390, 78.3880),
+                ("FS-Center-WiFi", "Food Street Center", 1, "Main Square", 17.4405, 78.3880),
                             
-                # Rock Plaza
-                ("RP-Main-WiFi", "Rock Plaza Main", 1, "Main Plaza", 37.7727, -122.4217),
-                ("RP-East-WiFi", "Rock Plaza East", 1, "Event Space", 37.7726, -122.4218),
-                ("RP-West-WiFi", "Rock Plaza West", 1, "Relaxation Area", 37.7725, -122.4219)
+                # Rock Plaza (arranged in the western part of campus)
+                ("RP-Main-WiFi", "Rock Plaza Main", 1, "Main Plaza", 17.4380, 78.3900),
+                ("RP-East-WiFi", "Rock Plaza East", 1, "Event Space", 17.4380, 78.3910),
+                ("RP-West-WiFi", "Rock Plaza West", 1, "Relaxation Area", 17.4380, 78.3890)
             ]
                         
             for ap_data in sample_ap_data:
