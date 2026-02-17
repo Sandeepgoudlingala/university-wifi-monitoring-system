@@ -108,24 +108,48 @@ def init_db():
         if count == 0:
             print("Adding sample access points to database...")
             
-            # Sample access points with diverse and accurate area/building names
+            # Sample access points with accurate university area names
             sample_ap_data = [
-                ("Library-WiFi", "Main Library", 2, "Study Area", 37.7749, -122.4194),
-                ("Student-Center-WiFi", "Student Center", 1, "Main Hall", 37.7750, -122.4195),
-                ("Engineering-WiFi", "Engineering Building", 3, "Lab Wing", 37.7751, -122.4193),
-                ("Dormitory-A-WiFi", "Residence Hall A", 2, "Common Room", 37.7748, -122.4196),
-                ("Science-Building-WiFi", "Science Building", 1, "Computer Lab", 37.7752, -122.4192),
-                ("Admin-Office-WiFi", "Administration", 1, "Main Office", 37.7747, -122.4197),
-                ("Cafe-WiFi", "Campus Cafe", 1, "Seating Area", 37.7753, -122.4191),
-                ("Fitness-Center-WiFi", "Fitness Center", 1, "Main Area", 37.7746, -122.4198),
-                # Added more accurate area names for university setting
-                ("Lecture-Hall-1-WiFi", "Academic Building", 1, "Lecture Hall 1", 37.7745, -122.4199),
-                ("Lecture-Hall-2-WiFi", "Academic Building", 2, "Lecture Hall 2", 37.7744, -122.4200),
-                ("Dining-Hall-WiFi", "Dining Commons", 1, "Main Dining", 37.7743, -122.4201),
-                ("Residence-Hall-B-WiFi", "Residence Hall B", 3, "Study Lounge", 37.7742, -122.4202),
-                ("Business-School-WiFi", "Business School", 2, "Collaboration Space", 37.7741, -122.4203),
-                ("Arts-Center-WiFi", "Arts Center", 1, "Gallery Hall", 37.7740, -122.4204),
-                ("Medical-School-WiFi", "Medical School", 4, "Research Lab", 37.7739, -122.4205)
+                # Mens Hostels (MH1 to MH7)
+                ("MH1-WiFi", "Mens Hostel 1", 1, "Common Area", 37.7749, -122.4194),
+                ("MH2-WiFi", "Mens Hostel 2", 1, "Common Area", 37.7750, -122.4195),
+                ("MH3-WiFi", "Mens Hostel 3", 1, "Common Area", 37.7751, -122.4193),
+                ("MH4-WiFi", "Mens Hostel 4", 1, "Common Area", 37.7748, -122.4196),
+                ("MH5-WiFi", "Mens Hostel 5", 1, "Common Area", 37.7752, -122.4192),
+                ("MH6-WiFi", "Mens Hostel 6", 1, "Common Area", 37.7747, -122.4197),
+                ("MH7-WiFi", "Mens Hostel 7", 1, "Common Area", 37.7753, -122.4191),
+                
+                # Ladies Hostels (LH1 to LH4)
+                ("LH1-WiFi", "Ladies Hostel 1", 1, "Common Area", 37.7746, -122.4198),
+                ("LH2-WiFi", "Ladies Hostel 2", 1, "Common Area", 37.7745, -122.4199),
+                ("LH3-WiFi", "Ladies Hostel 3", 1, "Common Area", 37.7744, -122.4200),
+                ("LH4-WiFi", "Ladies Hostel 4", 1, "Common Area", 37.7743, -122.4201),
+                
+                # Academic blocks (Central Block 1 to 10)
+                ("CB1-WiFi", "Central Block 1", 1, "Ground Floor", 37.7742, -122.4202),
+                ("CB2-WiFi", "Central Block 2", 2, "Second Floor", 37.7741, -122.4203),
+                ("CB3-WiFi", "Central Block 3", 3, "Third Floor", 37.7740, -122.4204),
+                ("CB4-WiFi", "Central Block 4", 4, "Fourth Floor", 37.7739, -122.4205),
+                ("CB5-WiFi", "Central Block 5", 5, "Fifth Floor", 37.7738, -122.4206),
+                ("CB6-WiFi", "Central Block 6", 6, "Sixth Floor", 37.7737, -122.4207),
+                ("CB7-WiFi", "Central Block 7", 7, "Seventh Floor", 37.7736, -122.4208),
+                ("CB8-WiFi", "Central Block 8", 8, "Eighth Floor", 37.7735, -122.4209),
+                ("CB9-WiFi", "Central Block 9", 9, "Ninth Floor", 37.7734, -122.4210),
+                ("CB10-WiFi", "Central Block 10", 10, "Tenth Floor", 37.7733, -122.4211),
+                
+                # Admission Block (AB1 and AB2)
+                ("AB1-WiFi", "Admission Block 1", 1, "Main Office", 37.7732, -122.4212),
+                ("AB2-WiFi", "Admission Block 2", 1, "Main Office", 37.7731, -122.4213),
+                
+                # Food Street
+                ("FS-North-WiFi", "Food Street North", 1, "Restaurant Area", 37.7730, -122.4214),
+                ("FS-South-WiFi", "Food Street South", 1, "Cafe Area", 37.7729, -122.4215),
+                ("FS-Center-WiFi", "Food Street Center", 1, "Main Square", 37.7728, -122.4216),
+                
+                # Rock Plaza
+                ("RP-Main-WiFi", "Rock Plaza Main", 1, "Main Plaza", 37.7727, -122.4217),
+                ("RP-East-WiFi", "Rock Plaza East", 1, "Event Space", 37.7726, -122.4218),
+                ("RP-West-WiFi", "Rock Plaza West", 1, "Relaxation Area", 37.7725, -122.4219)
             ]
             
             for ap_data in sample_ap_data:
@@ -725,39 +749,63 @@ try:
                 
         if ap_count == 0:
             print("No access points found in production, adding sample data...")
-                    
-            # Sample access points with diverse and accurate area/building names
+                        
+            # Sample access points with accurate university area names
             sample_ap_data = [
-                ("Library-WiFi", "Main Library", 2, "Study Area", 37.7749, -122.4194),
-                ("Student-Center-WiFi", "Student Center", 1, "Main Hall", 37.7750, -122.4195),
-                ("Engineering-WiFi", "Engineering Building", 3, "Lab Wing", 37.7751, -122.4193),
-                ("Dormitory-A-WiFi", "Residence Hall A", 2, "Common Room", 37.7748, -122.4196),
-                ("Science-Building-WiFi", "Science Building", 1, "Computer Lab", 37.7752, -122.4192),
-                ("Admin-Office-WiFi", "Administration", 1, "Main Office", 37.7747, -122.4197),
-                ("Cafe-WiFi", "Campus Cafe", 1, "Seating Area", 37.7753, -122.4191),
-                ("Fitness-Center-WiFi", "Fitness Center", 1, "Main Area", 37.7746, -122.4198),
-                # Added more accurate area names for university setting
-                ("Lecture-Hall-1-WiFi", "Academic Building", 1, "Lecture Hall 1", 37.7745, -122.4199),
-                ("Lecture-Hall-2-WiFi", "Academic Building", 2, "Lecture Hall 2", 37.7744, -122.4200),
-                ("Dining-Hall-WiFi", "Dining Commons", 1, "Main Dining", 37.7743, -122.4201),
-                ("Residence-Hall-B-WiFi", "Residence Hall B", 3, "Study Lounge", 37.7742, -122.4202),
-                ("Business-School-WiFi", "Business School", 2, "Collaboration Space", 37.7741, -122.4203),
-                ("Arts-Center-WiFi", "Arts Center", 1, "Gallery Hall", 37.7740, -122.4204),
-                ("Medical-School-WiFi", "Medical School", 4, "Research Lab", 37.7739, -122.4205)
+                # Mens Hostels (MH1 to MH7)
+                ("MH1-WiFi", "Mens Hostel 1", 1, "Common Area", 37.7749, -122.4194),
+                ("MH2-WiFi", "Mens Hostel 2", 1, "Common Area", 37.7750, -122.4195),
+                ("MH3-WiFi", "Mens Hostel 3", 1, "Common Area", 37.7751, -122.4193),
+                ("MH4-WiFi", "Mens Hostel 4", 1, "Common Area", 37.7748, -122.4196),
+                ("MH5-WiFi", "Mens Hostel 5", 1, "Common Area", 37.7752, -122.4192),
+                ("MH6-WiFi", "Mens Hostel 6", 1, "Common Area", 37.7747, -122.4197),
+                ("MH7-WiFi", "Mens Hostel 7", 1, "Common Area", 37.7753, -122.4191),
+                            
+                # Ladies Hostels (LH1 to LH4)
+                ("LH1-WiFi", "Ladies Hostel 1", 1, "Common Area", 37.7746, -122.4198),
+                ("LH2-WiFi", "Ladies Hostel 2", 1, "Common Area", 37.7745, -122.4199),
+                ("LH3-WiFi", "Ladies Hostel 3", 1, "Common Area", 37.7744, -122.4200),
+                ("LH4-WiFi", "Ladies Hostel 4", 1, "Common Area", 37.7743, -122.4201),
+                            
+                # Academic blocks (Central Block 1 to 10)
+                ("CB1-WiFi", "Central Block 1", 1, "Ground Floor", 37.7742, -122.4202),
+                ("CB2-WiFi", "Central Block 2", 2, "Second Floor", 37.7741, -122.4203),
+                ("CB3-WiFi", "Central Block 3", 3, "Third Floor", 37.7740, -122.4204),
+                ("CB4-WiFi", "Central Block 4", 4, "Fourth Floor", 37.7739, -122.4205),
+                ("CB5-WiFi", "Central Block 5", 5, "Fifth Floor", 37.7738, -122.4206),
+                ("CB6-WiFi", "Central Block 6", 6, "Sixth Floor", 37.7737, -122.4207),
+                ("CB7-WiFi", "Central Block 7", 7, "Seventh Floor", 37.7736, -122.4208),
+                ("CB8-WiFi", "Central Block 8", 8, "Eighth Floor", 37.7735, -122.4209),
+                ("CB9-WiFi", "Central Block 9", 9, "Ninth Floor", 37.7734, -122.4210),
+                ("CB10-WiFi", "Central Block 10", 10, "Tenth Floor", 37.7733, -122.4211),
+                            
+                # Admission Block (AB1 and AB2)
+                ("AB1-WiFi", "Admission Block 1", 1, "Main Office", 37.7732, -122.4212),
+                ("AB2-WiFi", "Admission Block 2", 1, "Main Office", 37.7731, -122.4213),
+                            
+                # Food Street
+                ("FS-North-WiFi", "Food Street North", 1, "Restaurant Area", 37.7730, -122.4214),
+                ("FS-South-WiFi", "Food Street South", 1, "Cafe Area", 37.7729, -122.4215),
+                ("FS-Center-WiFi", "Food Street Center", 1, "Main Square", 37.7728, -122.4216),
+                            
+                # Rock Plaza
+                ("RP-Main-WiFi", "Rock Plaza Main", 1, "Main Plaza", 37.7727, -122.4217),
+                ("RP-East-WiFi", "Rock Plaza East", 1, "Event Space", 37.7726, -122.4218),
+                ("RP-West-WiFi", "Rock Plaza West", 1, "Relaxation Area", 37.7725, -122.4219)
             ]
-                    
+                        
             for ap_data in sample_ap_data:
                 cursor.execute("""
                     INSERT OR IGNORE INTO access_points (ap_name, building, floor, room_number, latitude, longitude)
                     VALUES (?, ?, ?, ?, ?, ?)
                 """, ap_data)
-                        
+                            
                 # Get the ID of the inserted access point
                 cursor.execute("SELECT id FROM access_points WHERE ap_name = ?", (ap_data[0],))
                 result = cursor.fetchone()
                 if result:
                     ap_id = result[0]
-                            
+                                
                     # Add sample performance metrics for each access point
                     import random
                     # Vary the metrics to make them more realistic
@@ -766,7 +814,7 @@ try:
                     latency = round(random.uniform(10, 60), 1)
                     connected_users = random.randint(10, 80)  # More realistic user counts
                     signal_strength = round(random.uniform(-85, -35), 1)
-                            
+                                
                     cursor.execute("""
                         INSERT INTO performance_metrics (ap_id, download_speed, upload_speed, latency, 
                         packet_loss, connected_users, signal_strength, bandwidth_usage)
@@ -774,7 +822,7 @@ try:
                     """, (ap_id, download_speed, upload_speed, latency, 
                           round(random.uniform(0, 1.5), 2), connected_users, signal_strength, 
                           round(random.uniform(25, 85), 1)))
-                    
+                        
             conn.commit()
         conn.close()
     else:
