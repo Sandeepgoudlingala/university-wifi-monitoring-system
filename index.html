@@ -463,19 +463,122 @@
         // Initialize the page
         async function init() {
             // Update stats initially
-            await updateLiveStats();
-            await getUserInfo();
+            updateLiveStats();
             
             // Load area ping data
-            await loadAreaPingData();
+            loadAreaPingData();
             
-            // Update stats every 30 seconds
-            setInterval(updateLiveStats, 30000);
+            // Load map data
+            loadMapData();
             
-            // Update area ping data every 60 seconds
-            setInterval(loadAreaPingData, 60000);
+            // Set up auto-refresh
+            setInterval(updateLiveStats, 30000); // Refresh every 30 seconds
+            setInterval(loadAreaPingData, 60000); // Refresh area data every minute
+            setInterval(loadMapData, 120000); // Refresh map data every 2 minutes
         }
         
+        // Load map data with university locations
+        function loadMapData() {
+            // Clear existing map if it exists
+            if (window.map) {
+                map.remove();
+            }
+            
+            // Initialize the map
+            window.map = L.map('map').setView([17.4411, 78.3911], 16); // Coordinates for a typical university campus in India
+
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(window.map);
+
+            // University access point data with correct building names and approximate coordinates
+            const accessPoints = [
+                // Mens Hostels (MH1-MH7)
+                {name: 'MH1-WiFi', building: 'Mens Hostel 1', lat: 17.4415, lng: 78.3895, download: 42.0, upload: 22.9, ping: 39.5},
+                {name: 'MH2-WiFi', building: 'Mens Hostel 2', lat: 17.4416, lng: 78.3896, download: 32.8, upload: 25.6, ping: 31.7},
+                {name: 'MH3-WiFi', building: 'Mens Hostel 3', lat: 17.4417, lng: 78.3897, download: 34.5, upload: 10.8, ping: 32.8},
+                {name: 'MH4-WiFi', building: 'Mens Hostel 4', lat: 17.4418, lng: 78.3898, download: 77.4, upload: 18.0, ping: 56.2},
+                {name: 'MH5-WiFi', building: 'Mens Hostel 5', lat: 17.4419, lng: 78.3899, download: 119.7, upload: 24.4, ping: 25.1},
+                {name: 'MH6-WiFi', building: 'Mens Hostel 6', lat: 17.4420, lng: 78.3900, download: 65.9, upload: 19.3, ping: 45.6},
+                {name: 'MH7-WiFi', building: 'Mens Hostel 7', lat: 17.4421, lng: 78.3901, download: 37.9, upload: 19.6, ping: 33.1},
+                
+                // Ladies Hostels (LH1-LH4)
+                {name: 'LH1-WiFi', building: 'Ladies Hostel 1', lat: 17.4422, lng: 78.3902, download: 116.5, upload: 34.4, ping: 54.1},
+                {name: 'LH2-WiFi', building: 'Ladies Hostel 2', lat: 17.4423, lng: 78.3903, download: 92.1, upload: 33.2, ping: 33.7},
+                {name: 'LH3-WiFi', building: 'Ladies Hostel 3', lat: 17.4424, lng: 78.3904, download: 39.6, upload: 25.2, ping: 40.1},
+                {name: 'LH4-WiFi', building: 'Ladies Hostel 4', lat: 17.4425, lng: 78.3905, download: 87.5, upload: 23.5, ping: 14.6},
+                
+                // Central Blocks (Academic blocks 1-10)
+                {name: 'CB1-WiFi', building: 'Central Block 1', lat: 17.4405, lng: 78.3890, download: 78.6, upload: 13.4, ping: 42.3},
+                {name: 'CB2-WiFi', building: 'Central Block 2', lat: 17.4406, lng: 78.3891, download: 53.6, upload: 21.6, ping: 33.3},
+                {name: 'CB3-WiFi', building: 'Central Block 3', lat: 17.4407, lng: 78.3892, download: 40.5, upload: 21.6, ping: 13.8},
+                {name: 'CB4-WiFi', building: 'Central Block 4', lat: 17.4408, lng: 78.3893, download: 88.2, upload: 26.4, ping: 17.8},
+                {name: 'CB5-WiFi', building: 'Central Block 5', lat: 17.4409, lng: 78.3894, download: 86.8, upload: 24.2, ping: 18.9},
+                {name: 'CB6-WiFi', building: 'Central Block 6', lat: 17.4410, lng: 78.3895, download: 87.8, upload: 23.4, ping: 44.3},
+                {name: 'CB7-WiFi', building: 'Central Block 7', lat: 17.4411, lng: 78.3896, download: 108.7, upload: 25.0, ping: 20.1},
+                {name: 'CB8-WiFi', building: 'Central Block 8', lat: 17.4412, lng: 78.3897, download: 84.1, upload: 27.1, ping: 21.2},
+                {name: 'CB9-WiFi', building: 'Central Block 9', lat: 17.4413, lng: 78.3898, download: 94.5, upload: 19.8, ping: 51.1},
+                {name: 'CB10-WiFi', building: 'Central Block 10', lat: 17.4414, lng: 78.3899, download: 52.7, upload: 20.1, ping: 13.7},
+                
+                // Admission Blocks (AB1-AB2)
+                {name: 'AB1-WiFi', building: 'Admission Block 1', lat: 17.4426, lng: 78.3906, download: 117.7, upload: 20.5, ping: 29.5},
+                {name: 'AB2-WiFi', building: 'Admission Block 2', lat: 17.4427, lng: 78.3907, download: 43.5, upload: 26.0, ping: 26.9},
+                
+                // Food Street
+                {name: 'FS-North-WiFi', building: 'Food Street North', lat: 17.4428, lng: 78.3908, download: 56.7, upload: 18.2, ping: 48.0},
+                {name: 'FS-South-WiFi', building: 'Food Street South', lat: 17.4429, lng: 78.3909, download: 64.8, upload: 34.8, ping: 51.4},
+                {name: 'FS-Center-WiFi', building: 'Food Street Center', lat: 17.4430, lng: 78.3910, download: 85.4, upload: 20.7, ping: 14.0},
+                
+                // Rock Plaza
+                {name: 'RP-Main-WiFi', building: 'Rock Plaza Main', lat: 17.4431, lng: 78.3911, download: 34.3, upload: 13.5, ping: 15.2},
+                {name: 'RP-East-WiFi', building: 'Rock Plaza East', lat: 17.4432, lng: 78.3912, download: 66.0, upload: 10.5, ping: 16.0},
+                {name: 'RP-West-WiFi', building: 'Rock Plaza West', lat: 17.4433, lng: 78.3913, download: 39.1, upload: 25.1, ping: 28.6}
+            ];
+
+            // Add markers to the map with appropriate icons and colors
+            accessPoints.forEach(ap => {
+                // Define color based on building type
+                let markerColor = 'blue';
+                if (ap.building.includes('Mens Hostel')) markerColor = 'red';
+                else if (ap.building.includes('Ladies Hostel')) markerColor = 'pink';
+                else if (ap.building.includes('Central Block')) markerColor = 'green';
+                else if (ap.building.includes('Admission Block')) markerColor = 'orange';
+                else if (ap.building.includes('Food Street')) markerColor = 'purple';
+                else if (ap.building.includes('Rock Plaza')) markerColor = 'brown';
+                
+                // Create a colored circle marker
+                const marker = L.circleMarker([ap.lat, ap.lng], {
+                    radius: 8,
+                    fillColor: markerColor,
+                    color: '#fff',
+                    weight: 1,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(window.map);
+                
+                marker.bindPopup(`<b>${ap.name}</b><br>Building: ${ap.building}<br>Download: ${ap.download} Mbps<br>Upload: ${ap.upload} Mbps<br>Ping: ${ap.ping} ms`);
+            });
+            
+            // Add legend to the map
+            const legend = L.control({position: 'bottomright'});
+            
+            legend.onAdd = function (map) {
+                const div = L.DomUtil.create('div', 'info legend');
+                const labels = ['Hostels', 'Academic Blocks', 'Administrative', 'Dining & Recreation'];
+                const colors = ['red', 'green', 'orange', 'purple'];
+                
+                div.innerHTML = '<strong>Legend</strong><br>';
+                for (let i = 0; i < labels.length; i++) {
+                    div.innerHTML +=
+                        '<i style="background:' + colors[i] + '; width: 18px; height: 18px; display: inline-block; margin-right: 8px; border-radius: 50%;"></i> ' +
+                        labels[i] + '<br>';
+                }
+                return div;
+            };
+            
+            legend.addTo(window.map);
+        }
         // Run initialization when page loads
         window.onload = init;
     </script>
