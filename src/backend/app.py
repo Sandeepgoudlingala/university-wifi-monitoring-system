@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, send_file
 from flask_cors import CORS
 import json
 import os
@@ -26,8 +26,12 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 dashboard_path = os.path.join(current_dir, '../dashboard')
 
 if os.environ.get('PRODUCTION', '').lower() == 'true':
-    # In production, dashboard files are in the same directory structure
-    app = Flask(__name__, static_folder=dashboard_path, static_url_path='')
+    # In production, try multiple possible paths
+    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    if os.path.exists(os.path.join(root_dir, 'index.html')):
+        app = Flask(__name__, static_folder=root_dir, static_url_path='')
+    else:
+        app = Flask(__name__, static_folder=dashboard_path, static_url_path='')
 else:
     # In development, use local path
     app = Flask(__name__, static_folder=dashboard_path, static_url_path='')
@@ -158,9 +162,34 @@ def get_db_connection():
 
 
 @app.route('/')
+def serve_index():
+    """Serve the main index page"""
+    # Get the directory where this app.py file is located
+    current_file_dir = os.path.dirname(os.path.abspath(__file__))
+    # Navigate to the project root (three levels up from backend dir)
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file_dir)))
+    
+    # First, try to serve from project root
+    main_index_path = os.path.join(project_root, 'index.html')
+    if os.path.exists(main_index_path):
+        return send_file(main_index_path)
+    else:
+        # Fallback: try the main index from current working directory
+        cwd_index_path = os.path.join(os.getcwd(), 'index.html')
+        if os.path.exists(cwd_index_path):
+            return send_file(cwd_index_path)
+        else:
+            # Final fallback: try dashboard index
+            dashboard_path = os.path.join(current_file_dir, '..', 'dashboard', 'index.html')
+            dashboard_path = os.path.normpath(dashboard_path)  # Normalize the path
+            if os.path.exists(dashboard_path):
+                return send_file(dashboard_path)
+            else:
+                return 'Index file not found', 404
+
+@app.route('/dashboard')
 def serve_dashboard():
-    # Handle serving the dashboard in both dev and prod environments
-    import os
+    """Serve the dashboard page"""
     current_dir = os.path.dirname(os.path.abspath(__file__))
     dashboard_path = os.path.join(current_dir, '../dashboard')
     
@@ -173,7 +202,6 @@ def serve_dashboard():
 # Serve static files (CSS, JS, images) from dashboard directory
 @app.route('/styles.css')
 def serve_css():
-    import os
     current_dir = os.path.dirname(os.path.abspath(__file__))
     dashboard_path = os.path.join(current_dir, '../dashboard')
     
@@ -184,7 +212,6 @@ def serve_css():
 
 @app.route('/script.js')
 def serve_js():
-    import os
     current_dir = os.path.dirname(os.path.abspath(__file__))
     dashboard_path = os.path.join(current_dir, '../dashboard')
     
@@ -364,7 +391,7 @@ def submit_performance_metrics():
             ap_id,
             data.get('download_speed'),
             data.get('upload_speed'),
-            data.get('latency'),
+            data.get('latency'),  # This is the ping/latency measurement
             data.get('packet_loss'),
             data.get('connected_users'),
             data.get('signal_strength'),
@@ -374,11 +401,11 @@ def submit_performance_metrics():
         conn.commit()
         conn.close()
         
-        return jsonify({'message': 'Metrics submitted successfully'}), 201
+        return jsonify({'message': 'Metrics submitted successfully', 'ap_id': ap_id}), 201
     except Exception as e:
         print(f"Error submitting performance metrics: {str(e)}")
         traceback.print_exc()
-        return jsonify({'error': 'Failed to submit metrics'}), 500
+        return jsonify({'error': 'Failed to submit metrics', 'details': str(e)}), 500
 
 @app.route('/api/recommendations', methods=['GET'])
 def get_recommendations():
@@ -426,6 +453,82 @@ def get_recommendations():
         print(f"Error fetching recommendations: {str(e)}")
         traceback.print_exc()
         return jsonify({'error': 'Failed to fetch recommendations'}), 500
+
+@app.route('/api/ping-measurements', methods=['GET'])
+def get_ping_measurements():
+    """Get ping measurements grouped by area/building"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get latest ping measurements grouped by building
+        cursor.execute('''
+            SELECT ap.building, ap.ap_name, pm.latency as ping, 
+                   pm.download_speed, pm.upload_speed, pm.connected_users, 
+                   ap.latitude, ap.longitude, pm.timestamp
+            FROM access_points ap
+            INNER JOIN (
+                SELECT ap_id, latency, download_speed, upload_speed, 
+                       connected_users, timestamp
+                FROM performance_metrics
+                WHERE (ap_id, timestamp) IN (
+                    SELECT ap_id, MAX(timestamp)
+                    FROM performance_metrics
+                    GROUP BY ap_id
+                )
+            ) pm ON ap.id = pm.ap_id
+            ORDER BY ap.building, pm.latency ASC
+        ''')
+        
+        rows = cursor.fetchall()
+        
+        ping_data = []
+        for row in rows:
+            ping_data.append(dict(row))
+        
+        conn.close()
+        return jsonify(ping_data)
+    except Exception as e:
+        print(f"Error fetching ping measurements: {str(e)}")
+        traceback.print_exc()
+        return jsonify({'error': 'Failed to fetch ping measurements'}), 500
+
+@app.route('/api/area-ping-summary', methods=['GET'])
+def get_area_ping_summary():
+    """Get ping summary statistics by area/building"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get average ping by building
+        cursor.execute('''
+            SELECT ap.building,
+                   AVG(pm.latency) as avg_ping,
+                   MIN(pm.latency) as min_ping,
+                   MAX(pm.latency) as max_ping,
+                   COUNT(pm.latency) as measurement_count,
+                   AVG(pm.download_speed) as avg_download,
+                   AVG(pm.upload_speed) as avg_upload,
+                   AVG(pm.connected_users) as avg_users
+            FROM access_points ap
+            INNER JOIN performance_metrics pm ON ap.id = pm.ap_id
+            WHERE pm.timestamp >= datetime('now', '-24 hours')
+            GROUP BY ap.building
+            ORDER BY avg_ping ASC
+        ''')
+        
+        rows = cursor.fetchall()
+        
+        area_summary = []
+        for row in rows:
+            area_summary.append(dict(row))
+        
+        conn.close()
+        return jsonify(area_summary)
+    except Exception as e:
+        print(f"Error fetching area ping summary: {str(e)}")
+        traceback.print_exc()
+        return jsonify({'error': 'Failed to fetch area ping summary'}), 500
 
 def calculate_quality_score(data):
     """Calculate quality score based on performance metrics with user density adjustment"""
@@ -531,6 +634,66 @@ def get_collection_status():
     except Exception as e:
         print(f"Error getting collection status: {str(e)}")
         return jsonify({'error': 'Failed to get collection status'}), 500
+
+@app.route('/api/live-stats', methods=['GET'])
+def get_live_stats():
+    """Get live network statistics for the main page"""
+    try:
+        # Get the most recent access point data
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT ap.*, pm.download_speed, pm.upload_speed, pm.latency, 
+                   pm.connected_users, pm.signal_strength, pm.timestamp
+            FROM access_points ap
+            LEFT JOIN (
+                SELECT ap_id, download_speed, upload_speed, latency, 
+                       connected_users, signal_strength, timestamp
+                FROM performance_metrics
+                WHERE (ap_id, timestamp) IN (
+                    SELECT ap_id, MAX(timestamp)
+                    FROM performance_metrics
+                    GROUP BY ap_id
+                )
+            ) pm ON ap.id = pm.ap_id
+            LIMIT 5  -- Get top 5 access points
+        ''')
+        
+        rows = cursor.fetchall()
+        
+        access_points = []
+        for row in rows:
+            ap_dict = dict(row)
+            ap_dict['quality_score'] = calculate_quality_score(ap_dict)
+            ap_dict['status'] = get_status_from_score(ap_dict['quality_score'])
+            access_points.append(ap_dict)
+        
+        conn.close()
+        
+        # Calculate aggregate statistics
+        if access_points:
+            avg_download = sum(ap.get('download_speed', 0) for ap in access_points if ap.get('download_speed')) / len([ap for ap in access_points if ap.get('download_speed')])
+            avg_upload = sum(ap.get('upload_speed', 0) for ap in access_points if ap.get('upload_speed')) / len([ap for ap in access_points if ap.get('upload_speed')])
+            avg_latency = sum(ap.get('latency', 0) for ap in access_points if ap.get('latency')) / len([ap for ap in access_points if ap.get('latency')])
+        else:
+            avg_download = 0
+            avg_upload = 0
+            avg_latency = 0
+        
+        return jsonify({
+            'overall_status': 'active' if access_points else 'inactive',
+            'total_access_points': len(access_points),
+            'average_download_speed': round(avg_download, 2) if avg_download else 0,
+            'average_upload_speed': round(avg_upload, 2) if avg_upload else 0,
+            'average_latency': round(avg_latency, 2) if avg_latency else 0,
+            'connected_users': sum(ap.get('connected_users', 0) for ap in access_points if ap.get('connected_users')), 
+            'top_access_points': access_points[:3]  # Return top 3 access points
+        })
+    except Exception as e:
+        print(f"Error getting live stats: {str(e)}")
+        traceback.print_exc()
+        return jsonify({'error': 'Failed to get live stats'}), 500
 
 # Initialize database when the module is loaded
 try:

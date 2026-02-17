@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University WiFi Monitoring System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        header {
+            padding: 40px 0;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+        
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #4ade80;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .status-good { background: #4ade80; }
+        .status-medium { background: #fbbf24; }
+        .status-poor { background: #f87171; }
+        
+        .actions {
+            margin: 40px 0;
+        }
+        
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .dashboard-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #93c5fd;
+            text-decoration: none;
+            font-size: 1.1rem;
+        }
+        
+        .dashboard-link:hover {
+            text-decoration: underline;
+        }
+        
+        .ping-test-area {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 40px 0;
+        }
+        
+        .test-btn {
+            background: #3b82f6;
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 10px;
+        }
+        
+        .test-btn:hover {
+            background: #2563eb;
+        }
+        
+        footer {
+            margin-top: 40px;
+            padding: 20px;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .stat-value {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📶 University WiFi Monitoring System</h1>
+            <p class="subtitle">Real-time WiFi Performance Monitoring & Analysis</p>
+        </header>
+        
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="status-indicator status-good"></div>
+                <div class="stat-label">Connection Status</div>
+                <div class="stat-value" id="connectionStatus">Connected</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">Download Speed</div>
+                <div class="stat-value" id="downloadSpeed">-- Mbps</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">Upload Speed</div>
+                <div class="stat-value" id="uploadSpeed">-- Mbps</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">Ping (Latency)</div>
+                <div class="stat-value" id="pingTime">-- ms</div>
+            </div>
+        </div>
+        
+        <div class="ping-test-area">
+            <h2>🌐 Network Performance Test</h2>
+            <p>Test your current connection speed and latency</p>
+            
+            <button class="test-btn" onclick="runSpeedTest()">Run Speed Test</button>
+            <button class="test-btn" onclick="runPingTest()">Test Ping Only</button>
+            <a href="/dashboard" class="btn">View Detailed Analysis</a>
+            
+            <div style="margin-top: 20px;">
+                <p>Current Results:</p>
+                <div id="testResults" style="margin-top: 10px; font-family: monospace; font-size: 1.1em;"></div>
+            </div>
+        </div>
+        
+        <div class="ping-by-area">
+            <h2>📍 Ping Measurements by Area</h2>
+            <p>Real-time ping statistics across different areas/buildings</p>
+            
+            <div id="areaPingData" style="margin-top: 20px;">
+                <p>Loading area ping data...</p>
+            </div>
+            
+            <button class="test-btn" onclick="loadAreaPingData()" style="margin-top: 15px;">Refresh Area Ping Data</button>
+        </div>
+        
+        <div class="actions">
+            <a href="/dashboard" class="btn">📊 View Dashboard</a>
+            <a href="/api/access-points" class="btn">📋 API Data</a>
+            <a href="#" class="btn" onclick="updateLiveStats()">🔄 Refresh Stats</a>
+        </div>
+        
+        <a href="/dashboard" class="dashboard-link">Go to Full Network Monitoring Dashboard →</a>
+        
+        <footer>
+            <p>University WiFi Monitoring System &copy; 2026 | Real-time Network Performance Tracking</p>
+            <p>Your IP: <span id="userIP">Detecting...</span> | Location: <span id="userLocation">Detecting...</span></p>
+        </footer>
+    </div>
+
+    <script>
+        // Real-time network statistics
+        let isTesting = false;
+        
+        // Update live statistics
+        async function updateLiveStats() {
+            try {
+                // Update connection status
+                document.getElementById('connectionStatus').textContent = 'Checking...';
+                
+                // Try to fetch live stats from our API
+                const response = await fetch('/api/live-stats');
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Update the stats with real data
+                    document.getElementById('connectionStatus').innerHTML = '<span class="status-indicator status-good"></span> Active';
+                    document.getElementById('downloadSpeed').textContent = `${data.average_download_speed} Mbps`;
+                    document.getElementById('uploadSpeed').textContent = `${data.average_upload_speed} Mbps`;
+                    document.getElementById('pingTime').textContent = `${data.average_latency} ms`;
+                    
+                    // Update user info
+                    document.getElementById('userIP').textContent = 'Local Network';
+                    document.getElementById('userLocation').textContent = 'Campus Network';
+                    
+                    document.getElementById('testResults').innerHTML = 
+                        `<div style="color: #4ade80;">Latest network stats updated</div>`;
+                } else {
+                    document.getElementById('connectionStatus').innerHTML = '<span class="status-indicator status-poor"></span> Offline';
+                }
+            } catch (error) {
+                document.getElementById('connectionStatus').innerHTML = '<span class="status-indicator status-poor"></span> Error';
+                console.error('Error checking connection:', error);
+            }
+        }
+        
+        // Run ping test
+        async function runPingTest() {
+            if (isTesting) return;
+            
+            isTesting = true;
+            const testBtn = document.querySelector('.test-btn:nth-child(2)');
+            testBtn.textContent = 'Testing...';
+            testBtn.disabled = true;
+            
+            // Use the live stats API to get real ping/latency
+            try {
+                const startTime = new Date().getTime();
+                
+                // Perform a simple ping to our own API
+                const response = await fetch('/api/live-stats', {
+                    method: 'GET',
+                    cache: 'no-cache'
+                });
+                
+                const endTime = new Date().getTime();
+                const pingTime = endTime - startTime;
+                
+                // Get the actual stats if the response is successful
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('pingTime').textContent = `${data.average_latency} ms`;
+                    document.getElementById('downloadSpeed').textContent = `${data.average_download_speed} Mbps`;
+                    document.getElementById('uploadSpeed').textContent = `${data.average_upload_speed} Mbps`;
+                } else {
+                    // Use the calculated ping time if API fails
+                    document.getElementById('pingTime').textContent = `${pingTime} ms`;
+                }
+                
+                document.getElementById('testResults').innerHTML = 
+                    `<span style="color: #4ade80;">✓ Ping: ${pingTime}ms</span>`;
+                
+                // Also update the main ping display
+                updateLiveStats();
+            } catch (error) {
+                document.getElementById('testResults').innerHTML = 
+                    `<span style="color: #f87171;">✗ Ping test failed: ${error.message}</span>`;
+                console.error('Ping test error:', error);
+            } finally {
+                testBtn.textContent = 'Test Ping Only';
+                testBtn.disabled = false;
+                isTesting = false;
+            }
+        }
+        
+        // Run real speed test using the API data
+        async function runSpeedTest() {
+            if (isTesting) return;
+            
+            isTesting = true;
+            const testBtn = document.querySelector('.test-btn:first-child');
+            testBtn.textContent = 'Testing...';
+            testBtn.disabled = true;
+            
+            document.getElementById('testResults').innerHTML = 'Fetching network data...';
+            
+            try {
+                // Fetch real network statistics from the API
+                const response = await fetch('/api/live-stats');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Update with real data from the API
+                    document.getElementById('downloadSpeed').textContent = `${data.average_download_speed} Mbps`;
+                    document.getElementById('uploadSpeed').textContent = `${data.average_upload_speed} Mbps`;
+                    document.getElementById('pingTime').textContent = `${data.average_latency} ms`;
+                    
+                    document.getElementById('testResults').innerHTML = 
+                        `<div style="color: #4ade80;">
+                            <div>✓ Download: ${data.average_download_speed} Mbps</div>
+                            <div>✓ Upload: ${data.average_upload_speed} Mbps</div>
+                            <div>✓ Ping: ${data.average_latency} ms</div>
+                            <div>✓ Connected Users: ${data.connected_users}</div>
+                        </div>`;
+                } else {
+                    // Fallback to simulated values if API fails
+                    document.getElementById('testResults').innerHTML = 'API not responding, using simulated values...';
+                    
+                    // Simulate download test
+                    document.getElementById('testResults').innerHTML = 'Testing download speed...';
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    const downloadSpeed = (Math.random() * 80 + 20).toFixed(2);
+                    document.getElementById('downloadSpeed').textContent = `${downloadSpeed} Mbps`;
+                    
+                    // Simulate upload test
+                    document.getElementById('testResults').innerHTML = 'Testing upload speed...';
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    const uploadSpeed = (Math.random() * 30 + 5).toFixed(2);
+                    document.getElementById('uploadSpeed').textContent = `${uploadSpeed} Mbps`;
+                    
+                    // Simulate ping
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    const pingTime = Math.floor(Math.random() * 50 + 10);
+                    document.getElementById('pingTime').textContent = `${pingTime} ms`;
+                    
+                    document.getElementById('testResults').innerHTML = 
+                        `<div style="color: #fbbf24;">
+                            <div>⚠ Download: ${downloadSpeed} Mbps (simulated)</div>
+                            <div>⚠ Upload: ${uploadSpeed} Mbps (simulated)</div>
+                            <div>⚠ Ping: ${pingTime} ms (simulated)</div>
+                        </div>`;
+                }
+            } catch (error) {
+                console.error('Speed test error:', error);
+                document.getElementById('testResults').innerHTML = 
+                    `<span style="color: #f87171;">✗ Speed test failed: ${error.message}</span>`;
+            }
+            
+            testBtn.textContent = 'Run Speed Test';
+            testBtn.disabled = false;
+            isTesting = false;
+        }
+        
+        // Simulate ping test as part of speed test
+        async function runPingTestSimulation() {
+            // Simulate ping measurement
+            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate test duration
+            const pingTime = Math.floor(Math.random() * 50 + 10); // Random ping between 10-60
+            document.getElementById('pingTime').textContent = `${pingTime} ms`;
+        }
+        
+        // Get user IP and location (simulated)
+        async function getUserInfo() {
+            try {
+                // In a real implementation, we would use a service like ipinfo.io
+                // For now, we'll simulate it
+                document.getElementById('userIP').textContent = '192.168.1.' + Math.floor(Math.random() * 254);
+                document.getElementById('userLocation').textContent = 'Campus Network';
+            } catch (error) {
+                console.error('Error getting user info:', error);
+            }
+        }
+        
+        // Load area ping data
+        async function loadAreaPingData() {
+            try {
+                const response = await fetch('/api/area-ping-summary');
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.length > 0) {
+                        let html = '<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">';
+                        html += '<thead><tr style="background: rgba(255,255,255,0.1);">';
+                        html += '<th style="padding: 10px; text-align: left;">Building/Area</th>';
+                        html += '<th style="padding: 10px; text-align: left;">Avg Ping (ms)</th>';
+                        html += '<th style="padding: 10px; text-align: left;">Min Ping</th>';
+                        html += '<th style="padding: 10px; text-align: left;">Max Ping</th>';
+                        html += '<th style="padding: 10px; text-align: left;">Avg Download</th>';
+                        html += '<th style="padding: 10px; text-align: left;">Avg Upload</th>';
+                        html += '</tr></thead><tbody>';
+                        
+                        data.forEach(item => {
+                            html += '<tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">';
+                            html += `<td style="padding: 10px;">${item.building}</td>`;
+                            html += `<td style="padding: 10px;">${item.avg_ping ? item.avg_ping.toFixed(2) : 'N/A'} ms</td>`;
+                            html += `<td style="padding: 10px;">${item.min_ping ? item.min_ping.toFixed(2) : 'N/A'} ms</td>`;
+                            html += `<td style="padding: 10px;">${item.max_ping ? item.max_ping.toFixed(2) : 'N/A'} ms</td>`;
+                            html += `<td style="padding: 10px;">${item.avg_download ? item.avg_download.toFixed(2) : 'N/A'} Mbps</td>`;
+                            html += `<td style="padding: 10px;">${item.avg_upload ? item.avg_upload.toFixed(2) : 'N/A'} Mbps</td>`;
+                            html += '</tr>';
+                        });
+                        
+                        html += '</tbody></table>';
+                        document.getElementById('areaPingData').innerHTML = html;
+                    } else {
+                        document.getElementById('areaPingData').innerHTML = '<p>No ping data available yet.</p>';
+                    }
+                } else {
+                    document.getElementById('areaPingData').innerHTML = `<p>Error loading ping data: ${response.status}</p>`;
+                }
+            } catch (error) {
+                console.error('Error loading area ping data:', error);
+                document.getElementById('areaPingData').innerHTML = `<p>Error loading ping data: ${error.message}</p>`;
+            }
+        }
+        
+        // Initialize the page
+        async function init() {
+            // Update stats initially
+            await updateLiveStats();
+            await getUserInfo();
+            
+            // Load area ping data
+            await loadAreaPingData();
+            
+            // Update stats every 30 seconds
+            setInterval(updateLiveStats, 30000);
+            
+            // Update area ping data every 60 seconds
+            setInterval(loadAreaPingData, 60000);
+        }
+        
+        // Run initialization when page loads
+        window.onload = init;
+    </script>
+</body>
+</html>

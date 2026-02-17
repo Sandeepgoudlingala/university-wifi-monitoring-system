@@ -1,10 +1,12 @@
 {
   "version": 2,
+  "public": true,
   "builds": [
     {
       "src": "api.py",
       "use": "@vercel/python",
       "config": {
+        "maxLambdaSize": "15mb",
         "runtime": "python3.9"
       }
     }
@@ -24,11 +26,18 @@
       "dest": "api.py"
     },
     {
+      "src": "/index.html",
+      "dest": "api.py"
+    },
+    {
       "src": "/(.*)",
       "dest": "api.py"
     }
   ],
   "env": {
     "PRODUCTION": "true"
+  },
+  "github": {
+    "enabled": false
   }
 }

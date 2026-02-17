@@ -20,9 +20,9 @@ def run_backend():
 
 def run_collector_simulation():
     """Run the data collector in simulation mode"""
-    from src.data_collection.collector import WiFiPerformanceCollector
+    from src.data_collection.collector import WiFiDataCollector
     
-    collector = WiFiPerformanceCollector()
+    collector = WiFiDataCollector()
     
     # Simulate collecting data for various access points with realistic coordinates
     access_points = [
@@ -72,17 +72,23 @@ def run_collector_simulation():
         for ap_info in access_points:
             try:
                 # Collect metrics
-                metrics = collector.collect_all_metrics(
-                    ap_name=ap_info["name"],
-                    building=ap_info["building"],
-                    floor=ap_info["floor"],
-                    room_number=ap_info["room"],
-                    latitude=ap_info["lat"],
-                    longitude=ap_info["lng"]
-                )
+                # Set the access point name for this specific AP
+                collector.access_point_name = ap_info["name"]
                 
-                # Send to server
-                success = collector.send_metrics(metrics)
+                # Get network stats and update with location info
+                metrics = collector.get_network_stats()
+                # Override with specific location data from our access point list
+                metrics.update({
+                    'ap_name': ap_info["name"],
+                    'building': ap_info["building"],
+                    'floor': ap_info["floor"],
+                    'room_number': ap_info["room"],
+                    'latitude': ap_info["lat"],
+                    'longitude': ap_info["lng"]
+                })
+                
+                # Submit to server
+                success = collector.submit_metrics(metrics)
                 if success:
                     print(f"Sent metrics for {ap_info['name']}")
                 
@@ -100,7 +106,10 @@ def run_analyzer():
     """Run periodic analysis"""
     from src.analytics.analyzer import WiFiAnalyzer
     
-    analyzer = WiFiAnalyzer()
+    # Create database path relative to the backend directory
+    import os
+    db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'wifi_data.db')
+    analyzer = WiFiAnalyzer(db_path=db_path)
     
     print("Starting periodic analysis...")
     while True:
