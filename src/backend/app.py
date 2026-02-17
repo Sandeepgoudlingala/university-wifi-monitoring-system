@@ -8,6 +8,7 @@ import traceback
 from werkzeug.middleware.proxy_fix import ProxyFix
 import threading
 import time
+from flask_cors import CORS
 
 # Import data collection module
 try:

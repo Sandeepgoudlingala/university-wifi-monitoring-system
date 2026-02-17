@@ -37,7 +37,29 @@
   "env": {
     "PRODUCTION": "true"
   },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "ALLOWALL"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, proxy-revalidate"
+        }
+      ]
+    }
+  ],
   "github": {
-    "enabled": false
-  }
+    "enabled": false,
+    "autoJobCancelation": true
+  },
+  "cleanUrls": true,
+  "trailingSlash": false
 }
